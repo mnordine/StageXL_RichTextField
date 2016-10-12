@@ -10,7 +10,8 @@ documentation: https://github.com/bp74/StageXL_RichTextField
 
 dependencies:
   browser: '>=0.10.0 <0.11.0'
-  stagexl: '>=0.13.1 <0.14.0'
+  stagexl: 
+    git: https://github.com/mnordine/StageXL
 
 transformers:
 - $dart2js:
