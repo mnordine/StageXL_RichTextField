@@ -13,7 +13,10 @@ environment:
 
 dependencies:
   browser: any
-  stagexl: '^1.0.0'
+  stagexl: 
+    git: 
+      url: https://github.com/mnordine/StageXL
+      ref: dpi-fix
 
 transformers:
 - $dart2js:
