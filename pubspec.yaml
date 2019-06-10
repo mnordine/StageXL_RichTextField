@@ -9,16 +9,11 @@ homepage: https://github.com/bp74/StageXL_RichTextField
 documentation: https://github.com/bp74/StageXL_RichTextField
 
 environment:
-  sdk: '>=1.20.0 <2.0.0'
+  sdk: '>=2.0.0 <3.0.0'
 
 dependencies:
-  browser: any
   stagexl:
     git:
       url: https://github.com/mnordine/StageXL
-      ref: compress-textures-2
+      ref: dart-2
 
-transformers:
-- $dart2js:
-    commandLineOptions: ["--trust-type-annotations", "--trust-primitives", "--dump-info"]
-    minify: true
