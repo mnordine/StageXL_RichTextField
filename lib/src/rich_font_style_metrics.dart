@@ -8,7 +8,7 @@ _RichFontStyleMetrics _getFontStyleMetrics(String fontStyle) {
     _fontStyleMetrics[fontStyle] = new _RichFontStyleMetrics(fontStyle);
   }
 
-  return _fontStyleMetrics[fontStyle];
+  return _fontStyleMetrics[fontStyle]!;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ class _RichFontStyleMetrics {
   int descent = 0;
   int height = 0;
 
-  _RichFontStyleMetrics(String fontStyle) {
+  _RichFontStyleMetrics(this.fontStyle) {
 
     this.fontStyle = fontStyle;
 
@@ -37,7 +37,7 @@ class _RichFontStyleMetrics {
     div.append(block);
     div.append(text);
 
-    html.document.body.append(div);
+    html.document.body!.append(div);
 
     try {
       block.style.verticalAlign = "baseline";

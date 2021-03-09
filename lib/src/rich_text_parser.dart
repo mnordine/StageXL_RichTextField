@@ -14,7 +14,7 @@ class DefaultRichTextParser extends RichTextParser {
     String arg = '';
     int pos = 0;
 
-    List<List<Object>> formatRanges = new List<List<Object>>();
+    List<List<Object>> formatRanges = [[]];
     List<String> split = rawtext.split('{');
 
     for(var chunk in split) {
@@ -45,7 +45,7 @@ class DefaultRichTextParser extends RichTextParser {
 
     formatRanges.forEach((range) {
       //get known format for starting position
-      base = richTextField.getFormatAt(range[2]).clone();
+      base = richTextField.getFormatAt(range[2] as int).clone();
       //if format here ends before this one, make two
       switch (range[0]) {
         case 'b':
@@ -64,22 +64,22 @@ class DefaultRichTextParser extends RichTextParser {
           base.overline = true;
           break;
         case 'color':
-          base.color = _applyTextTagArg(range[1], base.color).toInt();
+          base.color = _applyTextTagArg(range[1] as String, base.color).toInt();
           break;
         case 'size':
-          base.size = _applyTextTagArg(range[1], base.size);
+          base.size = _applyTextTagArg(range[1] as String, base.size);
           break;
         case 'font':
-          base.font = range[1];
+          base.font = range[1] as String;
           break;
         default:
           if (richTextField.presets.containsKey(range[0])) {
-            base = richTextField.presets[range[0]];
+            base = richTextField.presets[range[0] as String]!;
           }
           break;
       }
 
-      richTextField.setFormat(base, range[2], range[3]);
+      richTextField.setFormat(base, range[2] as int, range[3] as int);
     });
 
     return newtext;

@@ -7,7 +7,7 @@ class RichTextFormat {
   int color;
   num strokeWidth;
   int strokeColor;
-  GraphicsGradient fillGradient;
+  GraphicsGradient? fillGradient;
   
   int startIndex;
   int endIndex;

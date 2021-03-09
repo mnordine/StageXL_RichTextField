@@ -24,17 +24,17 @@ class RichTextField extends InteractiveObject {
 
   num _textWidth = 0.0;
   num _textHeight = 0.0;
-  final List<RichTextLineMetrics> _textLineMetrics = new List<RichTextLineMetrics>();
+  final _textLineMetrics = <RichTextLineMetrics>[];
 
   int _refreshPending = 3;   // bit 0: textLineMetrics, bit 1: cache
   bool _cacheAsBitmap = true;
 
-  RenderTexture _renderTexture;
-  RenderTextureQuad _renderTextureQuad;
+  RenderTexture? _renderTexture;
+  RenderTextureQuad? _renderTextureQuad;
 
   //-------------------------------------------------------------------------------------------------
 
-  RichTextField([String text = "", RichTextFormat textFormat, bool parse = true]) {
+  RichTextField([String text = "", RichTextFormat? textFormat, bool parse = true]) {
     this.defaultTextFormat = textFormat ?? new RichTextFormat("Arial", 12, 0x000000);
     this.parse = parse;
     this.text = text;
@@ -105,7 +105,7 @@ class RichTextField extends InteractiveObject {
 
   //-------------------------------------------------------------------------------------------------
 
-  RenderTexture get renderTexture => _renderTexture;
+  RenderTexture? get renderTexture => _renderTexture;
   String get text => _text;
   String get rawText => _rawText;
   int get textColor => _textFormats[0].color;
@@ -274,7 +274,7 @@ class RichTextField extends InteractiveObject {
   }
 
   @override
-  DisplayObject hitTestInput(num localX, num localY) {
+  DisplayObject? hitTestInput(num localX, num localY) {
     if (localX < 0 || localX >= width) return null;
     if (localY < 0 || localY >= height) return null;
     return this;
@@ -287,9 +287,9 @@ class RichTextField extends InteractiveObject {
 
     if (renderState.renderContext is RenderContextWebGL || _cacheAsBitmap ) {
       _refreshCache(renderState.globalMatrix);
-      renderState.renderTextureQuad(_renderTextureQuad);
+      renderState.renderTextureQuad(_renderTextureQuad!);
     } else {
-      RenderContextCanvas renderContextCanvas = renderState.renderContext;
+      final renderContextCanvas = renderState.renderContext as RenderContextCanvas;
       renderContextCanvas.setTransform(renderState.globalMatrix);
       renderContextCanvas.setAlpha(renderState.globalAlpha);
       _renderText(renderContextCanvas.rawContext);
@@ -302,7 +302,7 @@ class RichTextField extends InteractiveObject {
     if (renderState.renderContext is RenderContextWebGL || _cacheAsBitmap) {
       _refreshTextLineMetrics();
       _refreshCache(renderState.globalMatrix);
-      renderState.renderTextureQuadFiltered(_renderTextureQuad, this.filters);
+      renderState.renderTextureQuadFiltered(_renderTextureQuad!, this.filters);
     } else {
       super.renderFiltered(renderState);
     }
@@ -323,7 +323,7 @@ class RichTextField extends InteractiveObject {
     for(RichTextFormat rtf in _textFormats.where((f) => !(f.startIndex > endIndex || (f.endIndex < startIndex && f.endIndex != -1)))) {
       canvasContext.font = rtf._cssFontStyle;
       int rtfEndIndex = rtf.endIndex==-1?line.length:rtf.endIndex-startIndex+1;
-      lineWidth += canvasContext.measureText(line.substring(max(rtf.startIndex-startIndex,0), min(rtfEndIndex, line.length))).width;
+      lineWidth += canvasContext.measureText(line.substring(max(rtf.startIndex-startIndex,0), min(rtfEndIndex, line.length))).width!;
     }
 
     return lineWidth;
@@ -343,19 +343,19 @@ class RichTextField extends InteractiveObject {
     // split lines
 
     var startIndex = 0;
-    var checkLine = '';
-    var validLine = '';
-    var lineWidth = 0.0;
-    var lineIndent = 0.0;
+    String? checkLine = '';
+    String? validLine = '';
+    num lineWidth = 0;
+    num lineIndent = 0;
 
     RichTextFormat firstFormat = _textFormats[0];
-    num strokeWidth = _ensureNum(defaultTextFormat.strokeWidth);
-    var textFormatIndent = _ensureNum(firstFormat.indent);
-    var textFormatLeftMargin = _ensureNum(firstFormat.leftMargin);
-    var textFormatRightMargin = _ensureNum(firstFormat.rightMargin);
+    num strokeWidth = defaultTextFormat.strokeWidth;
+    var textFormatIndent = firstFormat.indent;
+    var textFormatLeftMargin = firstFormat.leftMargin;
+    var textFormatRightMargin = firstFormat.rightMargin;
     var availableWidth = _width - textFormatLeftMargin - textFormatRightMargin;
 
-    var paragraphLines = new List<int>();
+    var paragraphLines = <int>[];
 
     var canvasContext = _dummyCanvasContext
       ..textAlign = "start"
@@ -419,15 +419,15 @@ class RichTextField extends InteractiveObject {
 
       var lineIndex = textLineMetrics._textIndex;
       var lineEndIndex = textLineMetrics._text.length + lineIndex;
-      var textFormatSize = 0;
-      var lineFormat = _textFormats.firstWhere((f) => lineIndex>=f.startIndex && (lineIndex<=f.endIndex || f.endIndex == -1),
-          orElse: () => null);
+      num textFormatSize = 0;
+      RichTextFormat? lineFormat = _textFormats
+          .firstWhereOrNull((f) => lineIndex>=f.startIndex && (lineIndex<=f.endIndex || f.endIndex == -1));
       
       if(lineFormat == null) continue; 
       
       //textFormatSize must be the max text size enountered on that line
       for(RichTextFormat rtf in _textFormats.where((f) => !(f.startIndex > lineEndIndex || (f.endIndex < lineIndex && f.endIndex != -1)))) {
-        textFormatSize = max(_ensureNum(rtf.size),textFormatSize);
+        textFormatSize = max(rtf.size,textFormatSize);
       }
 
       var textFormatTopMargin = _ensureNum(lineFormat.topMargin);
@@ -524,19 +524,19 @@ class RichTextField extends InteractiveObject {
 
     if (_renderTexture == null) {
       _renderTexture = new RenderTexture(width, height, Color.Transparent);
-      _renderTextureQuad = _renderTexture.quad.withPixelRatio(pixelRatioGlobal);
+      _renderTextureQuad = _renderTexture!.quad.withPixelRatio(pixelRatioGlobal);
     } else {
-      _renderTexture.resize(width, height);
-      _renderTextureQuad = _renderTexture.quad.withPixelRatio(pixelRatioGlobal);
+      _renderTexture!.resize(width, height);
+      _renderTextureQuad = _renderTexture!.quad.withPixelRatio(pixelRatioGlobal);
     }
 
-    var matrix = _renderTextureQuad.drawMatrix;
-    var context = _renderTexture.canvas.context2D;
+    var matrix = _renderTextureQuad!.drawMatrix;
+    var context = _renderTexture!.canvas.context2D;
     context.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
     context.clearRect(0, 0, _width, _height);
 
     _renderText(context);
-    _renderTexture.update();
+    _renderTexture!.update();
   }
 
   //-------------------------------------------------------------------------------------------------
@@ -571,7 +571,7 @@ class RichTextField extends InteractiveObject {
         context.font = rtf._cssFontStyle;
 
         if(rtf.fillGradient != null) {
-          context.fillStyle = _getCanvasGradient(context, rtf.fillGradient);
+          context.fillStyle = _getCanvasGradient(context, rtf.fillGradient!);
         } else {
           context.fillStyle = _color2rgb(rtf.color);
         }
@@ -590,7 +590,7 @@ class RichTextField extends InteractiveObject {
           ..fillText(text, lm._x + offsetX, lm._y);
         
         
-        tfWidth = context.measureText(text).width;
+        tfWidth = context.measureText(text).width!;
 
         if(rtf.underline || rtf.strikethrough || rtf.overline) {
           var lineWidth = (rtf.bold ? rtf.size / 10 : rtf.size / 20).ceil();
