@@ -14,7 +14,7 @@ class DefaultRichTextParser extends RichTextParser {
     String arg = '';
     int pos = 0;
 
-    List<List<Object>> formatRanges = [[]];
+    List<List<Object>> formatRanges = [];
     List<String> split = rawtext.split('{');
 
     for(var chunk in split) {
