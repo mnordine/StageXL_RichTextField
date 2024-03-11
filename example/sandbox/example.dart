@@ -1,12 +1,13 @@
-import 'dart:html' show CanvasElement, querySelector, TextAreaElement, ButtonElement;
+import 'package:web/web.dart'
+  show HTMLCanvasElement, document, HTMLTextAreaElement, HTMLButtonElement, ElementEventGetters;
 import 'package:stagexl/stagexl.dart';
 import 'package:stagexl_richtextfield/stagexl_richtextfield.dart';
 
 void main() {
 
-  final canvas = querySelector("#richtext") as CanvasElement;
-  final textarea = querySelector('#texttodraw') as TextAreaElement;
-  final reload = querySelector('#reload') as ButtonElement;
+  final canvas = document.getElementById("richtext")! as HTMLCanvasElement;
+  final textarea = document.getElementById('texttodraw')! as HTMLTextAreaElement;
+  final reload = document.getElementById('reload')! as HTMLButtonElement;
 
   Stage stage = Stage(canvas);
   RenderLoop render = RenderLoop();
@@ -22,7 +23,7 @@ void main() {
 
   RichTextField rtf = RichTextField('', format)
     ..presets['excited'] = excited
-    ..text = textarea.value!
+    ..text = textarea.value
     ..width = stage.sourceWidth
     ..height = stage.sourceHeight
     ..wordWrap = true;
@@ -31,7 +32,7 @@ void main() {
   stage.addChild(rtf);
 
   reload.onClick.listen((e) {
-    rtf.text = textarea.value!;
+    rtf.text = textarea.value;
   });
 
 }

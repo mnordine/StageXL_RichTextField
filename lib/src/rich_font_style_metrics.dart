@@ -24,16 +24,16 @@ class _RichFontStyleMetrics {
 
     this.fontStyle = fontStyle;
 
-    var text = new html.Element.tag("span");
+    var text = html.HTMLSpanElement();
     text.style.font = this.fontStyle;
     text.text = "Hg";
 
-    var block = new html.Element.tag("div");
+    var block = html.HTMLDivElement();
     block.style.display = "inline-block";
     block.style.width = "1px";
     block.style.height = "0px";
 
-    var div = new html.Element.tag("div");
+    var div = html.HTMLDivElement();
     div.append(block);
     div.append(text);
 
