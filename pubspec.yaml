@@ -6,7 +6,7 @@ documentation: https://github.com/bp74/StageXL_RichTextField
 publish_to: none
 
 environment:
-  sdk: '^3.4.0-247.0.dev'
+  sdk: '^3.4.0'
 
 dependencies:
   collection: any
