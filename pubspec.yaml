@@ -12,7 +12,7 @@ dependencies:
   collection: any
   stagexl:
     git:
-      url: https://github.com/CEksal/StageXL
+      url: https://github.com/mnordine/StageXL
       ref: package-web
 
 dev_dependencies:
