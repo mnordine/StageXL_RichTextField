@@ -20,22 +20,6 @@ String _color2rgba(int color) {
   return "rgba($r,$g,$b,$a)";
 }
 
-num _ensureNum(num value) {
-  if (value is num) {
-    return value;
-  } else {
-    throw new ArgumentError("The supplied value ($value) is not a number.");
-  }
-}
-
-String _ensureString(String value) {
-  if (value is String) {
-    return value;
-  } else {
-    throw new ArgumentError("The supplied value ($value) is not a string.");
-  }
-}
-
 CanvasGradient _getCanvasGradient(CanvasRenderingContext2D context, GraphicsGradient gradient) {
 
   var sx = gradient.startX;
