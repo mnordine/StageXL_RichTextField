@@ -318,12 +318,12 @@ class RichTextField extends InteractiveObject {
     var canvasContext = _dummyCanvasContext
       ..textAlign = "start"
       ..textBaseline = "alphabetic"
-      ..setTransform(1.0.toJS, 0.0, 0.0, 1.0, 0.0, 0.0);
+      ..setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 
     for(RichTextFormat rtf in _textFormats.where((f) => !(f.startIndex > endIndex || (f.endIndex < startIndex && f.endIndex != -1)))) {
       canvasContext.font = rtf._cssFontStyle;
       int rtfEndIndex = rtf.endIndex==-1?line.length:rtf.endIndex-startIndex+1;
-      lineWidth += canvasContext.measureText(line.substring(max(rtf.startIndex-startIndex,0), min(rtfEndIndex, line.length))).width;
+      lineWidth += canvasContext.measureText(line.substring(max(rtf.startIndex-startIndex,0), min(rtfEndIndex, line.length))).width!;
     }
 
     return lineWidth;
@@ -360,7 +360,7 @@ class RichTextField extends InteractiveObject {
     var canvasContext = _dummyCanvasContext
       ..textAlign = "start"
       ..textBaseline = "alphabetic"
-      ..setTransform(1.0.toJS, 0.0, 0.0, 1.0, 0.0, 0.0);
+      ..setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 
     for(var paragraph in _text.split('\n')) {
 
@@ -415,6 +415,7 @@ class RichTextField extends InteractiveObject {
     for(int line = 0; line < _textLineMetrics.length; line++) {
 
       var textLineMetrics = _textLineMetrics[line];
+      if (textLineMetrics is! RichTextLineMetrics) continue; // dart2js_hint
 
       var lineIndex = textLineMetrics._textIndex;
       var lineEndIndex = textLineMetrics._text.length + lineIndex;
@@ -429,15 +430,15 @@ class RichTextField extends InteractiveObject {
         textFormatSize = max(rtf.size,textFormatSize);
       }
 
-      var textFormatTopMargin = lineFormat.topMargin;
-      var textFormatBottomMargin = lineFormat.bottomMargin;
-      var textFormatLeading = lineFormat.leading;
-      var textFormatAlign = lineFormat.align;
+      var textFormatTopMargin = _ensureNum(lineFormat.topMargin);
+      var textFormatBottomMargin = _ensureNum(lineFormat.bottomMargin);
+      var textFormatLeading = _ensureNum(lineFormat.leading);
+      var textFormatAlign = _ensureString(lineFormat.align);
 
       var fontStyle = lineFormat._cssFontStyle;
       var fontStyleMetrics = _getFontStyleMetrics(fontStyle);
-      var fontStyleMetricsAscent = fontStyleMetrics.ascent;
-      var fontStyleMetricsDescent = fontStyleMetrics.descent;
+      var fontStyleMetricsAscent = _ensureNum(fontStyleMetrics.ascent);
+      var fontStyleMetricsDescent = _ensureNum(fontStyleMetrics.descent);
 
       canvasContext.font = fontStyle;
 
@@ -531,7 +532,7 @@ class RichTextField extends InteractiveObject {
 
     var matrix = _renderTextureQuad!.drawMatrix;
     var context = _renderTexture!.canvas.context2D;
-    context.setTransform(matrix.a.toJS, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
+    context.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
     context.clearRect(0, 0, _width, _height);
 
     _renderText(context);
@@ -552,7 +553,7 @@ class RichTextField extends InteractiveObject {
 
     if (_background) {
       context
-        ..fillStyle = _color2rgb(_backgroundColor).toJS
+        ..fillStyle = _color2rgb(_backgroundColor)
         ..fillRect(0, 0, _width, _height);
     }
 
@@ -572,12 +573,12 @@ class RichTextField extends InteractiveObject {
         if(rtf.fillGradient != null) {
           context.fillStyle = _getCanvasGradient(context, rtf.fillGradient!);
         } else {
-          context.fillStyle = _color2rgb(rtf.color).toJS;
+          context.fillStyle = _color2rgb(rtf.color);
         }
 
         if(rtf.strokeWidth > 0) {
           context.lineWidth = rtf.strokeWidth * 2;
-          context.strokeStyle = _color2rgb(rtf.strokeColor).toJS;
+          context.strokeStyle = _color2rgb(rtf.strokeColor);
            
           for(RichTextLineMetrics lm in _textLineMetrics) {
             context.strokeText(text, lm.x, lm.y);
@@ -585,11 +586,11 @@ class RichTextField extends InteractiveObject {
         }
              
         context
-          ..strokeStyle = _color2rgb(rtf.color).toJS
+          ..strokeStyle = _color2rgb(rtf.color)
           ..fillText(text, lm._x + offsetX, lm._y);
         
         
-        tfWidth = context.measureText(text).width;
+        tfWidth = context.measureText(text).width!;
 
         if(rtf.underline || rtf.strikethrough || rtf.overline) {
           var lineWidth = (rtf.bold ? rtf.size / 10 : rtf.size / 20).ceil();
@@ -600,7 +601,7 @@ class RichTextField extends InteractiveObject {
           num overlineY = (lm.y - rtf.size / 1.25).round();
 
           context
-            ..strokeStyle = _color2rgb(rtf.color).toJS
+            ..strokeStyle = _color2rgb(rtf.color)
             ..lineWidth = lineWidth
             ..beginPath();
 
@@ -624,7 +625,7 @@ class RichTextField extends InteractiveObject {
     }
 
     if (_border) {
-      context.strokeStyle = _color2rgb(_borderColor).toJS;
+      context.strokeStyle = _color2rgb(_borderColor);
       context.lineWidth = 1;
       context.strokeRect(0, 0, _width, _height);
     }

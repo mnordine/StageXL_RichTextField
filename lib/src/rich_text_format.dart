@@ -28,23 +28,23 @@ class RichTextFormat {
   //-------------------------------------------------------------------------------------------------
 
   RichTextFormat(this.font, this.size, this.color, {
-    this.startIndex   = 0,
-    this.endIndex     = -1,
-    this.strokeWidth  = 0.0,
-    this.strokeColor  = Color.Black,
+    this.startIndex   : 0,
+    this.endIndex     : -1,
+    this.strokeWidth  : 0.0,
+    this.strokeColor  : Color.Black,
     this.fillGradient,
-    this.bold         = false,
-    this.italic       = false,
-    this.underline    = false,
-    this.strikethrough= false,
-    this.overline     = false,
-    this.align        = "left",
-    this.topMargin    = 0.0,
-    this.bottomMargin = 0.0,
-    this.leftMargin   = 0.0,
-    this.rightMargin  = 0.0,
-    this.indent       = 0.0,
-    this.leading      = 0.0
+    this.bold         : false,
+    this.italic       : false,
+    this.underline    : false,
+    this.strikethrough: false,
+    this.overline     : false,
+    this.align        : "left",
+    this.topMargin    : 0.0,
+    this.bottomMargin : 0.0,
+    this.leftMargin   : 0.0,
+    this.rightMargin  : 0.0,
+    this.indent       : 0.0,
+    this.leading      : 0.0
   });
 
   //-------------------------------------------------------------------------------------------------
