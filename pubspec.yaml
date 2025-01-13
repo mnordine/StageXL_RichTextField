@@ -12,9 +12,7 @@ dependencies:
   collection: any
   lints: ^5.1.1
   stagexl:
-    git:
-      url: https://github.com/mnordine/StageXL
-      ref: package-web
+    git: https://github.com/mnordine/StageXL
   web: ^1.1.0
 
 dev_dependencies:
