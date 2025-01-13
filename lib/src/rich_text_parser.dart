@@ -50,33 +50,24 @@ class DefaultRichTextParser extends RichTextParser {
       switch (range[0]) {
         case 'b':
           base.bold = true;
-          break;
         case 'u':
           base.underline = true;
-          break;
         case 'i':
           base.italic = true;
-          break;
         case 's':
           base.strikethrough = true;
-          break;
         case 'o':
           base.overline = true;
-          break;
         case 'color':
           base.color = _applyTextTagArg(range[1] as String, base.color).toInt();
-          break;
         case 'size':
           base.size = _applyTextTagArg(range[1] as String, base.size);
-          break;
         case 'font':
           base.font = range[1] as String;
-          break;
         default:
           if (richTextField.presets.containsKey(range[0])) {
             base = richTextField.presets[range[0] as String]!;
           }
-          break;
       }
 
       richTextField.setFormat(base, range[2] as int, range[3] as int);
@@ -95,16 +86,12 @@ class DefaultRichTextParser extends RichTextParser {
       switch (op) {
         case '+':
           result = base + result;
-          break;
         case '-':
           result = base - result;
-          break;
         case '*':
           result = base * result;
-          break;
         case '/':
           result = base / result;
-          break;
       }
     } else {
       result = arg.contains('x') ? int.parse(arg) : double.parse(arg);

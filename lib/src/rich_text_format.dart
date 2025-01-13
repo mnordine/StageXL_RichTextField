@@ -50,7 +50,7 @@ class RichTextFormat {
   //-------------------------------------------------------------------------------------------------
 
   RichTextFormat clone() {
-    return new RichTextFormat(font, size, color, startIndex: startIndex, endIndex: endIndex,
+    return RichTextFormat(font, size, color, startIndex: startIndex, endIndex: endIndex,
         strokeWidth: strokeWidth, strokeColor: strokeColor, fillGradient: fillGradient,
         bold: bold, italic: italic, underline: underline, strikethrough: strikethrough, overline: overline, align: align,
         topMargin: topMargin, bottomMargin: bottomMargin, leftMargin: leftMargin, rightMargin: rightMargin,
@@ -60,7 +60,7 @@ class RichTextFormat {
   //-------------------------------------------------------------------------------------------------
 
   String get _cssFontStyle {
-    var fontStyle = "${size}px ${font}, sans-serif";
+    var fontStyle = "${size}px $font, sans-serif";
     if (bold) fontStyle = "bold $fontStyle";
     if (italic) fontStyle = "italic $fontStyle";
     return fontStyle;

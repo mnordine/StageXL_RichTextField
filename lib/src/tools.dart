@@ -36,7 +36,7 @@ CanvasGradient _getCanvasGradient(CanvasRenderingContext2D context, GraphicsGrad
   } else if (gradient.type == GraphicsGradientType.Radial) {
     canvasGradient = context.createRadialGradient(sx, sy, sr, ex, ey, er);
   } else {
-    throw new ArgumentError("Unknown gradient kind");
+    throw ArgumentError("Unknown gradient kind");
   }
 
   for (var colorStop in gradient.colorStops) {

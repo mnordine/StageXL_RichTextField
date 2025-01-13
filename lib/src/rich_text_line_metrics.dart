@@ -2,8 +2,8 @@ part of stagexl_richtextfield;
 
 class RichTextLineMetrics {
 
-  String _text;
-  int _textIndex;
+  final String _text;
+  final int _textIndex;
 
   num _x = 0.0;
   num _y = 0.0;   // relative to baseline

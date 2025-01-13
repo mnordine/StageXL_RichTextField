@@ -1,11 +1,11 @@
 part of stagexl_richtextfield;
 
-final Map<String, _RichFontStyleMetrics> _fontStyleMetrics = new Map<String, _RichFontStyleMetrics>();
+final Map<String, _RichFontStyleMetrics> _fontStyleMetrics = <String, _RichFontStyleMetrics>{};
 
 _RichFontStyleMetrics _getFontStyleMetrics(String fontStyle) {
 
   if (_fontStyleMetrics.containsKey(fontStyle) == false) {
-    _fontStyleMetrics[fontStyle] = new _RichFontStyleMetrics(fontStyle);
+    _fontStyleMetrics[fontStyle] = _RichFontStyleMetrics(fontStyle);
   }
 
   return _fontStyleMetrics[fontStyle]!;
@@ -22,10 +22,10 @@ class _RichFontStyleMetrics {
 
   _RichFontStyleMetrics(this.fontStyle) {
 
-    this.fontStyle = fontStyle;
+    fontStyle = fontStyle;
 
     var text = html.HTMLSpanElement();
-    text.style.font = this.fontStyle;
+    text.style.font = fontStyle;
     text.text = "Hg";
 
     var block = html.HTMLDivElement();
@@ -41,12 +41,12 @@ class _RichFontStyleMetrics {
 
     try {
       block.style.verticalAlign = "baseline";
-      this.ascent = block.offsetTop - text.offsetTop;
+      ascent = block.offsetTop - text.offsetTop;
 
       block.style.verticalAlign = "bottom";
-      this.height = block.offsetTop - text.offsetTop;
+      height = block.offsetTop - text.offsetTop;
 
-      this.descent = height - ascent;
+      descent = height - ascent;
 
     } catch (e) {
       // ignore error

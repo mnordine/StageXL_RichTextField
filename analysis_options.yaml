@@ -1,7 +1,16 @@
+include: package:lints/recommended.yaml
+
 analyzer:
   strong-mode:
     implicit-casts: true
     implicit-dynamic: true
+
+  errors:
+    curly_braces_in_flow_control_structures: ignore
+    use_string_in_part_of_directives: ignore
+    avoid_function_literals_in_foreach_calls: ignore
+    unnecessary_library_name: ignore
+
 linter:
   # http://dart-lang.github.io/linter/lints/
   rules:
@@ -53,3 +62,4 @@ linter:
     #- unnecessary_getters_setters
     - unrelated_type_equality_checks
     - valid_regexps
+    - unnecessary_breaks
