@@ -46,22 +46,14 @@ class DefaultRichTextParser extends RichTextParser {
       var base = richTextField.getFormatAt(range[2] as int).clone();
       //if format here ends before this one, make two
       switch (range[0]) {
-        case 'b':
-          base.bold = true;
-        case 'u':
-          base.underline = true;
-        case 'i':
-          base.italic = true;
-        case 's':
-          base.strikethrough = true;
-        case 'o':
-          base.overline = true;
-        case 'color':
-          base.color = _applyTextTagArg(range[1] as String, base.color).toInt();
-        case 'size':
-          base.size = _applyTextTagArg(range[1] as String, base.size);
-        case 'font':
-          base.font = range[1] as String;
+        case 'b': base.bold = true;
+        case 'u': base.underline = true;
+        case 'i': base.italic = true;
+        case 's': base.strikethrough = true;
+        case 'o': base.overline = true;
+        case 'color': base.color = _applyTextTagArg(range[1] as String, base.color).toInt();
+        case 'size': base.size = _applyTextTagArg(range[1] as String, base.size);
+        case 'font': base.font = range[1] as String;
         default:
           if (richTextField.presets.containsKey(range[0])) {
             base = richTextField.presets[range[0] as String]!;
@@ -82,14 +74,10 @@ class DefaultRichTextParser extends RichTextParser {
       String op = arg.substring(0, 1);
       result = arg.contains('x') ? int.parse(arg.substring(1)) : double.parse(arg.substring(1));
       switch (op) {
-        case '+':
-          result = base + result;
-        case '-':
-          result = base - result;
-        case '*':
-          result = base * result;
-        case '/':
-          result = base / result;
+        case '+': result = base + result;
+        case '-': result = base - result;
+        case '*': result = base * result;
+        case '/': result = base / result;
       }
     } else {
       result = arg.contains('x') ? int.parse(arg) : double.parse(arg);
