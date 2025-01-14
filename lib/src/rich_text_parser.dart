@@ -41,11 +41,9 @@ class DefaultRichTextParser extends RichTextParser {
       pos = newtext.length;
     }
 
-    RichTextFormat base;
-
     formatRanges.forEach((range) {
       //get known format for starting position
-      base = richTextField.getFormatAt(range[2] as int).clone();
+      var base = richTextField.getFormatAt(range[2] as int).clone();
       //if format here ends before this one, make two
       switch (range[0]) {
         case 'b':
