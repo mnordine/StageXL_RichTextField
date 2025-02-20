@@ -20,22 +20,6 @@ String _color2rgba(int color) {
   return "rgba($r,$g,$b,$a)";
 }
 
-num _ensureNum(num value) {
-  if (value is num) {
-    return value;
-  } else {
-    throw new ArgumentError("The supplied value ($value) is not a number.");
-  }
-}
-
-String _ensureString(String value) {
-  if (value is String) {
-    return value;
-  } else {
-    throw new ArgumentError("The supplied value ($value) is not a string.");
-  }
-}
-
 CanvasGradient _getCanvasGradient(CanvasRenderingContext2D context, GraphicsGradient gradient) {
 
   var sx = gradient.startX;
@@ -47,12 +31,12 @@ CanvasGradient _getCanvasGradient(CanvasRenderingContext2D context, GraphicsGrad
 
   CanvasGradient canvasGradient;
 
-  if (gradient.kind == "linear") {
+  if (gradient.type == GraphicsGradientType.Linear) {
     canvasGradient = context.createLinearGradient(sx, sy, ex, ey);
-  } else if (gradient.kind == "radial") {
+  } else if (gradient.type == GraphicsGradientType.Radial) {
     canvasGradient = context.createRadialGradient(sx, sy, sr, ex, ey, er);
   } else {
-    throw new ArgumentError("Unknown gradient kind");
+    throw ArgumentError("Unknown gradient kind");
   }
 
   for (var colorStop in gradient.colorStops) {
