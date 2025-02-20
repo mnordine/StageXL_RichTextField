@@ -7,7 +7,7 @@ class RichTextFormat {
   int color;
   num strokeWidth;
   int strokeColor;
-  GraphicsGradient fillGradient;
+  GraphicsGradient? fillGradient;
   
   int startIndex;
   int endIndex;
@@ -28,29 +28,29 @@ class RichTextFormat {
   //-------------------------------------------------------------------------------------------------
 
   RichTextFormat(this.font, this.size, this.color, {
-    this.startIndex   : 0,
-    this.endIndex     : -1,
-    this.strokeWidth  : 0.0,
-    this.strokeColor  : Color.Black,
-    this.fillGradient : null,
-    this.bold         : false,
-    this.italic       : false,
-    this.underline    : false,
-    this.strikethrough: false,
-    this.overline     : false,
-    this.align        : "left",
-    this.topMargin    : 0.0,
-    this.bottomMargin : 0.0,
-    this.leftMargin   : 0.0,
-    this.rightMargin  : 0.0,
-    this.indent       : 0.0,
-    this.leading      : 0.0
+    this.startIndex   = 0,
+    this.endIndex     = -1,
+    this.strokeWidth  = 0.0,
+    this.strokeColor  = Color.Black,
+    this.fillGradient,
+    this.bold         = false,
+    this.italic       = false,
+    this.underline    = false,
+    this.strikethrough= false,
+    this.overline     = false,
+    this.align        = "left",
+    this.topMargin    = 0.0,
+    this.bottomMargin = 0.0,
+    this.leftMargin   = 0.0,
+    this.rightMargin  = 0.0,
+    this.indent       = 0.0,
+    this.leading      = 0.0
   });
 
   //-------------------------------------------------------------------------------------------------
 
   RichTextFormat clone() {
-    return new RichTextFormat(font, size, color, startIndex: startIndex, endIndex: endIndex,
+    return RichTextFormat(font, size, color, startIndex: startIndex, endIndex: endIndex,
         strokeWidth: strokeWidth, strokeColor: strokeColor, fillGradient: fillGradient,
         bold: bold, italic: italic, underline: underline, strikethrough: strikethrough, overline: overline, align: align,
         topMargin: topMargin, bottomMargin: bottomMargin, leftMargin: leftMargin, rightMargin: rightMargin,
@@ -60,7 +60,7 @@ class RichTextFormat {
   //-------------------------------------------------------------------------------------------------
 
   String get _cssFontStyle {
-    var fontStyle = "${size}px ${font}, sans-serif";
+    var fontStyle = "${size}px $font, sans-serif";
     if (bold) fontStyle = "bold $fontStyle";
     if (italic) fontStyle = "italic $fontStyle";
     return fontStyle;

@@ -1,10 +1,12 @@
 part of stagexl_richtextfield;
 
-class RichTextField extends InteractiveObject implements TextField {
+class RichTextField extends InteractiveObject {
+
+  RichTextParser parser = DefaultRichTextParser();
 
   String _text = "";
   String _rawText = "";
-  List<RichTextFormat> _textFormats = [new RichTextFormat("Arial", 12, 0x000000)];
+  List<RichTextFormat> _textFormats = [RichTextFormat("Arial", 12, 0x000000)];
   Map<String, RichTextFormat> presets = {};
 
   String _autoSize = TextFieldAutoSize.NONE;
@@ -16,34 +18,26 @@ class RichTextField extends InteractiveObject implements TextField {
   bool _parse = true;
   int _backgroundColor = 0xFFFFFF;
   int _borderColor = 0x000000;
-  int _maxChars = 0;
+  int maxChars = 0;
   num _width = 100;
   num _height = 100;
 
   num _textWidth = 0.0;
   num _textHeight = 0.0;
-  final List<RichTextLineMetrics> _textLineMetrics = new List<RichTextLineMetrics>();
-  var parser;
+  final _textLineMetrics = <RichTextLineMetrics>[];
 
   int _refreshPending = 3;   // bit 0: textLineMetrics, bit 1: cache
   bool _cacheAsBitmap = true;
 
-  RenderTexture _renderTexture;
-  RenderTextureQuad _renderTextureQuad;
+  RenderTexture? _renderTexture;
+  RenderTextureQuad? _renderTextureQuad;
 
   //-------------------------------------------------------------------------------------------------
 
-  RichTextField([String text = "", RichTextFormat textFormat, bool parse = true]) {
-
-    this.defaultTextFormat = (textFormat != null) ? textFormat : new RichTextFormat("Arial", 12, 0x000000);
+  RichTextField([String text = "", RichTextFormat? textFormat, bool parse = true]) {
+    defaultTextFormat = textFormat ?? RichTextFormat("Arial", 12, 0x000000);
     this.parse = parse;
-    this.parser = defaultParser;
-    if(parse && text != "") {
-      this._rawText = this.text;
-      parser(text);
-    } else this.text = text;
-
-    this.onMouseDown.listen(_onMouseDown);
+    this.text = text;
   }
 
   //-------------------------------------------------------------------------------------------------
@@ -101,94 +95,17 @@ class RichTextField extends InteractiveObject implements TextField {
         _textFormats.removeAt(i);
         _textFormats.add(add);
       }
-      
     }
 
     _textFormats.sort((a,b) => a.startIndex-b.startIndex);
-
     _refreshPending |= 2;
     
     return;
-
-  }
-
-  defaultParser(String rawtext) {
-    int pos = 0;
-    String action;
-    String newtext = '';
-    var arg;
-    List<List> formatRanges = [];
-    List split = rawtext.split('{');
-    split.forEach((chunk) {
-      List actText = chunk.split('}');
-      if(actText.length==1) { //text prior to first tag
-        newtext = newtext + actText[0];
-      } else { //get action
-        action = actText[0];
-        if(!action.startsWith('/')) { //opening a range
-          //check for argument
-          if(action.contains('=')) {
-            List actArg = action.split('=');
-            action = actArg[0];
-            arg = actArg[1];
-          }
-          formatRanges.add([action,arg,pos,-1]); //second+ appearance
-        } else { //closing a range
-          action = action.substring(1);
-          formatRanges.lastWhere((e) => e[3] == -1)[3] = pos-1; //get last unclosed range for that action
-        }
-        newtext = newtext + actText[1];
-      }
-      pos = newtext.length;
-    });
-
-    this._text = newtext;
-
-    RichTextFormat base;
-    
-    formatRanges.forEach((range) {
-      //get known format for starting position
-      base = getFormatAt(range[2]).clone();
-      //if format here ends before this one, make two
-      switch(range[0]) {
-        case 'b': base.bold = true; break;
-        case 'u': base.underline = true; break;
-        case 'i': base.italic = true; break;
-        case 's': base.strikethrough = true; break;
-        case 'o': base.overline = true; break;
-        case 'color': base.color = _applyTextTagArg(range[1], base.color).toInt(); break;
-        case 'size': base.size = _applyTextTagArg(range[1],base.size); break;
-        case 'font': base.font = range[1]; break;
-        default:
-          if(presets.containsKey(range[0])) base = presets[range[0]];
-          break;
-      }
-  
-      setFormat(base, range[2], range[3]);
-    });
-
-  }
-
-  num _applyTextTagArg(String arg, base) {
-    num result = 0;
-    if('+-*/'.contains(arg.substring(0, 1))) {
-      String op = arg.substring(0, 1);
-      result = arg.contains('x')?int.parse(arg.substring(1)):double.parse(arg.substring(1));
-      switch(op) {
-        case '+': result = base + result; break;
-        case '-': result = base - result; break;
-        case '*': result = base * result; break;
-        case '/': result = base / result; break;
-      }
-    } else result = arg.contains('x')?int.parse(arg):double.parse(arg);
-
-    return result;
-
   }
 
   //-------------------------------------------------------------------------------------------------
 
-  RenderTexture get renderTexture => _renderTexture;
+  RenderTexture? get renderTexture => _renderTexture;
   String get text => _text;
   String get rawText => _rawText;
   int get textColor => _textFormats[0].color;
@@ -206,102 +123,105 @@ class RichTextField extends InteractiveObject implements TextField {
 
   int get backgroundColor => _backgroundColor;
   int get borderColor => _borderColor;
-  int get maxChars => _maxChars;
 
   //-------------------------------------------------------------------------------------------------
 
-  void set width(num value) {
+  @override
+  set width(num value) {
     _width = value.toDouble();
     _refreshPending |= 3;
   }
 
-  void set height(num value) {
+  @override
+  set height(num value) {
     _height = value.toDouble();
     _refreshPending |= 3;
   }
 
-  void set text(String value) {
-    _text = value.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-    _rawText = _text;
+  set text(String value) {
+    value = value.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     if(parse && value != "") {
       _textFormats.removeRange(1, _textFormats.length);
       _textFormats[0].endIndex = -1;
-      parser(text);
+      _rawText = value;
+      _text = parser.parse(this, value);
+    } else {
+      _rawText = value;
+      _text = value;
     }
     _refreshPending |= 3;
   }
 
-  void set textColor(int value) {
+  set textColor(int value) {
     _textFormats[0].color = value;
     _refreshPending |= 2;
   }
 
-  void set defaultTextFormat(RichTextFormat value) {
+  set defaultTextFormat(RichTextFormat value) {
     _textFormats[0] = value.clone();
     _refreshPending |= 3;
   }
 
-  void set autoSize(String value) {
+  set autoSize(String value) {
     _autoSize = value;
     _refreshPending |= 3;
   }
 
-  void set wordWrap(bool value) {
+  set wordWrap(bool value) {
     _wordWrap = value;
     _refreshPending |= 3;
   }
 
-  void set multiline(bool value) {
+  set multiline(bool value) {
     _multiline = value;
     _refreshPending |= 3;
   }
 
-  void set parse(bool value) {
+  set parse(bool value) {
     _parse = value;
     _refreshPending |= 3;
   }
 
-  void set background(bool value) {
+  set background(bool value) {
     _background = value;
     _refreshPending |= 2;
   }
 
-  void set backgroundColor(int value) {
+  set backgroundColor(int value) {
     _backgroundColor = value;
     _refreshPending |= 2;
   }
 
-  void set border(bool value) {
+  set border(bool value) {
     _border = value;
     _refreshPending |= 2;
   }
 
-  void set borderColor(int value) {
+  set borderColor(int value) {
     _borderColor = value;
     _refreshPending |= 2;
   }
 
-  void set maxChars(int value) {
-    _maxChars = value;
-  }
-
-  void set cacheAsBitmap(bool value) {
+  set cacheAsBitmap(bool value) {
     if (value) _refreshPending |= 2;
     _cacheAsBitmap = value;
   }
 
   //-------------------------------------------------------------------------------------------------
 
+  @override
   num get x {
     _refreshTextLineMetrics();
     return super.x;
   }
 
+  @override
   num get width {
     _refreshTextLineMetrics();
     return _width;
   }
 
+  @override
   num get height {
     _refreshTextLineMetrics();
     return _height;
@@ -345,11 +265,11 @@ class RichTextField extends InteractiveObject implements TextField {
 
   @override
   Rectangle<num> get bounds {
-    return new Rectangle<num>(0.0, 0.0, width, height);
+    return Rectangle<num>(0.0, 0.0, width, height);
   }
 
   @override
-  DisplayObject hitTestInput(num localX, num localY) {
+  DisplayObject? hitTestInput(num localX, num localY) {
     if (localX < 0 || localX >= width) return null;
     if (localY < 0 || localY >= height) return null;
     return this;
@@ -362,9 +282,9 @@ class RichTextField extends InteractiveObject implements TextField {
 
     if (renderState.renderContext is RenderContextWebGL || _cacheAsBitmap ) {
       _refreshCache(renderState.globalMatrix);
-      renderState.renderTextureQuad(_renderTextureQuad);
+      renderState.renderTextureQuad(_renderTextureQuad!);
     } else {
-      RenderContextCanvas renderContextCanvas = renderState.renderContext;
+      final renderContextCanvas = renderState.renderContext as RenderContextCanvas;
       renderContextCanvas.setTransform(renderState.globalMatrix);
       renderContextCanvas.setAlpha(renderState.globalAlpha);
       _renderText(renderContextCanvas.rawContext);
@@ -377,7 +297,7 @@ class RichTextField extends InteractiveObject implements TextField {
     if (renderState.renderContext is RenderContextWebGL || _cacheAsBitmap) {
       _refreshTextLineMetrics();
       _refreshCache(renderState.globalMatrix);
-      renderState.renderTextureQuadFiltered(_renderTextureQuad, this.filters);
+      renderState.renderTextureQuadFiltered(_renderTextureQuad!, filters);
     } else {
       super.renderFiltered(renderState);
     }
@@ -393,7 +313,7 @@ class RichTextField extends InteractiveObject implements TextField {
     var canvasContext = _dummyCanvasContext
       ..textAlign = "start"
       ..textBaseline = "alphabetic"
-      ..setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+      ..setTransform(1.0.toJS, 0.0, 0.0, 1.0, 0.0, 0.0);
 
     for(RichTextFormat rtf in _textFormats.where((f) => !(f.startIndex > endIndex || (f.endIndex < startIndex && f.endIndex != -1)))) {
       canvasContext.font = rtf._cssFontStyle;
@@ -404,7 +324,7 @@ class RichTextField extends InteractiveObject implements TextField {
     return lineWidth;
   }
 
-  _refreshTextLineMetrics() {
+  void _refreshTextLineMetrics() {
 
     if ((_refreshPending & 1) == 0) {
       return;
@@ -418,24 +338,24 @@ class RichTextField extends InteractiveObject implements TextField {
     // split lines
 
     var startIndex = 0;
-    var checkLine = '';
-    var validLine = '';
-    var lineWidth = 0;
-    var lineIndent = 0;
+    String? checkLine = '';
+    String? validLine = '';
+    num lineWidth = 0;
+    num lineIndent = 0;
 
     RichTextFormat firstFormat = _textFormats[0];
-    num strokeWidth = _ensureNum(defaultTextFormat.strokeWidth);
-    var textFormatIndent = _ensureNum(firstFormat.indent);
-    var textFormatLeftMargin = _ensureNum(firstFormat.leftMargin);
-    var textFormatRightMargin = _ensureNum(firstFormat.rightMargin);
+    num strokeWidth = defaultTextFormat.strokeWidth;
+    var textFormatIndent = firstFormat.indent;
+    var textFormatLeftMargin = firstFormat.leftMargin;
+    var textFormatRightMargin = firstFormat.rightMargin;
     var availableWidth = _width - textFormatLeftMargin - textFormatRightMargin;
 
-    var paragraphLines = new List<int>();
+    var paragraphLines = <int>[];
 
     var canvasContext = _dummyCanvasContext
       ..textAlign = "start"
       ..textBaseline = "alphabetic"
-      ..setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+      ..setTransform(1.0.toJS, 0.0, 0.0, 1.0, 0.0, 0.0);
 
     for(var paragraph in _text.split('\n')) {
 
@@ -443,7 +363,7 @@ class RichTextField extends InteractiveObject implements TextField {
 
       if (_wordWrap == false) {
 
-        _textLineMetrics.add(new RichTextLineMetrics._internal(paragraph, startIndex));
+        _textLineMetrics.add(RichTextLineMetrics._internal(paragraph, startIndex));
         startIndex += paragraph.length + 1;
 
       } else {
@@ -460,21 +380,21 @@ class RichTextField extends InteractiveObject implements TextField {
 
           if (lineIndent + lineWidth >= availableWidth) {
             if (validLine == null) {
-              _textLineMetrics.add(new RichTextLineMetrics._internal(checkLine, startIndex));
+              _textLineMetrics.add(RichTextLineMetrics._internal(checkLine, startIndex));
               startIndex += checkLine.length + 1;
               checkLine = null;
-              lineIndent = 0;
+              lineIndent = 0.0;
             } else {
-              _textLineMetrics.add(new RichTextLineMetrics._internal(validLine, startIndex));
+              _textLineMetrics.add(RichTextLineMetrics._internal(validLine, startIndex));
               startIndex += validLine.length + 1;
               checkLine = word;
-              lineIndent = 0;
+              lineIndent = 0.0;
             }
           }
         }
 
         if (checkLine != null) {
-          _textLineMetrics.add(new RichTextLineMetrics._internal(checkLine, startIndex));
+          _textLineMetrics.add(RichTextLineMetrics._internal(checkLine, startIndex));
           startIndex += checkLine.length + 1;
         }
       }
@@ -490,30 +410,29 @@ class RichTextField extends InteractiveObject implements TextField {
     for(int line = 0; line < _textLineMetrics.length; line++) {
 
       var textLineMetrics = _textLineMetrics[line];
-      if (textLineMetrics is! RichTextLineMetrics) continue; // dart2js_hint
 
       var lineIndex = textLineMetrics._textIndex;
       var lineEndIndex = textLineMetrics._text.length + lineIndex;
-      var textFormatSize = 0;
-      var lineFormat = _textFormats.firstWhere((f) => lineIndex>=f.startIndex && (lineIndex<=f.endIndex || f.endIndex == -1),
-          orElse: () => null);
+      num textFormatSize = 0;
+      RichTextFormat? lineFormat = _textFormats
+          .firstWhereOrNull((f) => lineIndex>=f.startIndex && (lineIndex<=f.endIndex || f.endIndex == -1));
       
       if(lineFormat == null) continue; 
       
       //textFormatSize must be the max text size enountered on that line
       for(RichTextFormat rtf in _textFormats.where((f) => !(f.startIndex > lineEndIndex || (f.endIndex < lineIndex && f.endIndex != -1)))) {
-        textFormatSize = max(_ensureNum(rtf.size),textFormatSize);
+        textFormatSize = max(rtf.size,textFormatSize);
       }
 
-      var textFormatTopMargin = _ensureNum(lineFormat.topMargin);
-      var textFormatBottomMargin = _ensureNum(lineFormat.bottomMargin);
-      var textFormatLeading = _ensureNum(lineFormat.leading);
-      var textFormatAlign = _ensureString(lineFormat.align);
+      var textFormatTopMargin = lineFormat.topMargin;
+      var textFormatBottomMargin = lineFormat.bottomMargin;
+      var textFormatLeading = lineFormat.leading;
+      var textFormatAlign = lineFormat.align;
 
       var fontStyle = lineFormat._cssFontStyle;
       var fontStyleMetrics = _getFontStyleMetrics(fontStyle);
-      var fontStyleMetricsAscent = _ensureNum(fontStyleMetrics.ascent);
-      var fontStyleMetricsDescent = _ensureNum(fontStyleMetrics.descent);
+      var fontStyleMetricsAscent = fontStyleMetrics.ascent;
+      var fontStyleMetricsDescent = fontStyleMetrics.descent;
 
       canvasContext.font = fontStyle;
 
@@ -528,11 +447,9 @@ class RichTextField extends InteractiveObject implements TextField {
         case TextFormatAlign.CENTER:
         case TextFormatAlign.JUSTIFY:
           offsetX += (availableWidth - width) / 2;
-          break;
         case TextFormatAlign.RIGHT:
         case TextFormatAlign.END:
           offsetX += (availableWidth - width);
-          break;
         default:
           offsetX += strokeWidth;
       }
@@ -566,17 +483,14 @@ class RichTextField extends InteractiveObject implements TextField {
         case TextFieldAutoSize.LEFT:
           _width = autoWidth;
           _height = autoHeight;
-          break;
         case TextFieldAutoSize.RIGHT:
           super.x -= (autoWidth - _width);
           _width = autoWidth;
           _height = autoHeight;
-          break;
         case TextFieldAutoSize.CENTER:
           super.x -= (autoWidth - _width) / 2;
           _width = autoWidth;
           _height = autoHeight;
-          break;
       }
     }
 
@@ -584,7 +498,7 @@ class RichTextField extends InteractiveObject implements TextField {
 
   //-------------------------------------------------------------------------------------------------
 
-  _refreshCache(Matrix globalMatrix) {
+  void _refreshCache(Matrix globalMatrix) {
 
     var pixelRatioGlobal = sqrt(globalMatrix.det.abs());
     var pixelRatioCache = _renderTextureQuad?.pixelRatio ?? 0.0;
@@ -598,25 +512,25 @@ class RichTextField extends InteractiveObject implements TextField {
     var height =  max(1, _height * pixelRatioGlobal).ceil();
 
     if (_renderTexture == null) {
-      _renderTexture = new RenderTexture(width, height, Color.Transparent);
-      _renderTextureQuad = _renderTexture.quad.withPixelRatio(pixelRatioGlobal);
+      _renderTexture = RenderTexture(width, height, Color.Transparent);
+      _renderTextureQuad = _renderTexture!.quad.withPixelRatio(pixelRatioGlobal);
     } else {
-      _renderTexture.resize(width, height);
-      _renderTextureQuad = _renderTexture.quad.withPixelRatio(pixelRatioGlobal);
+      _renderTexture!.resize(width, height);
+      _renderTextureQuad = _renderTexture!.quad.withPixelRatio(pixelRatioGlobal);
     }
 
-    var matrix = _renderTextureQuad.drawMatrix;
-    var context = _renderTexture.canvas.context2D;
-    context.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
+    var matrix = _renderTextureQuad!.drawMatrix;
+    var context = _renderTexture!.canvas.context2D;
+    context.setTransform(matrix.a.toJS, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
     context.clearRect(0, 0, _width, _height);
 
     _renderText(context);
-    _renderTexture.update();
+    _renderTexture!.update();
   }
 
   //-------------------------------------------------------------------------------------------------
 
-  _renderText(CanvasRenderingContext2D context) {
+  void _renderText(CanvasRenderingContext2D context) {
 
     context
       ..save()
@@ -628,7 +542,7 @@ class RichTextField extends InteractiveObject implements TextField {
 
     if (_background) {
       context
-        ..fillStyle = _color2rgb(_backgroundColor)
+        ..fillStyle = _color2rgb(_backgroundColor).toJS
         ..fillRect(0, 0, _width, _height);
     }
 
@@ -646,14 +560,14 @@ class RichTextField extends InteractiveObject implements TextField {
         context.font = rtf._cssFontStyle;
 
         if(rtf.fillGradient != null) {
-          context.fillStyle = _getCanvasGradient(context, rtf.fillGradient);
+          context.fillStyle = _getCanvasGradient(context, rtf.fillGradient!);
         } else {
-          context.fillStyle = _color2rgb(rtf.color);
+          context.fillStyle = _color2rgb(rtf.color).toJS;
         }
 
         if(rtf.strokeWidth > 0) {
           context.lineWidth = rtf.strokeWidth * 2;
-          context.strokeStyle = _color2rgb(rtf.strokeColor);
+          context.strokeStyle = _color2rgb(rtf.strokeColor).toJS;
            
           for(RichTextLineMetrics lm in _textLineMetrics) {
             context.strokeText(text, lm.x, lm.y);
@@ -661,7 +575,7 @@ class RichTextField extends InteractiveObject implements TextField {
         }
              
         context
-          ..strokeStyle = _color2rgb(rtf.color)
+          ..strokeStyle = _color2rgb(rtf.color).toJS
           ..fillText(text, lm._x + offsetX, lm._y);
         
         
@@ -676,7 +590,7 @@ class RichTextField extends InteractiveObject implements TextField {
           num overlineY = (lm.y - rtf.size / 1.25).round();
 
           context
-            ..strokeStyle = _color2rgb(rtf.color)
+            ..strokeStyle = _color2rgb(rtf.color).toJS
             ..lineWidth = lineWidth
             ..beginPath();
 
@@ -700,7 +614,7 @@ class RichTextField extends InteractiveObject implements TextField {
     }
 
     if (_border) {
-      context.strokeStyle = _color2rgb(_borderColor);
+      context.strokeStyle = _color2rgb(_borderColor).toJS;
       context.lineWidth = 1;
       context.strokeRect(0, 0, _width, _height);
     }
@@ -708,10 +622,4 @@ class RichTextField extends InteractiveObject implements TextField {
     context.restore();
   }
 
-   //-------------------------------------------------------------------------------------------------
-
-  _onMouseDown(MouseEvent mouseEvent) {
-    //use this for simple "did user click on this textfield" logic
-
-  }
 }

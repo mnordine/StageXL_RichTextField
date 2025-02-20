@@ -1,14 +1,14 @@
 part of stagexl_richtextfield;
 
-final Map<String, _RichFontStyleMetrics> _fontStyleMetrics = new Map<String, _RichFontStyleMetrics>();
+final Map<String, _RichFontStyleMetrics> _fontStyleMetrics = <String, _RichFontStyleMetrics>{};
 
 _RichFontStyleMetrics _getFontStyleMetrics(String fontStyle) {
 
   if (_fontStyleMetrics.containsKey(fontStyle) == false) {
-    _fontStyleMetrics[fontStyle] = new _RichFontStyleMetrics(fontStyle);
+    _fontStyleMetrics[fontStyle] = _RichFontStyleMetrics(fontStyle);
   }
 
-  return _fontStyleMetrics[fontStyle];
+  return _fontStyleMetrics[fontStyle]!;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -20,36 +20,36 @@ class _RichFontStyleMetrics {
   int descent = 0;
   int height = 0;
 
-  _RichFontStyleMetrics(String fontStyle) {
+  _RichFontStyleMetrics(this.fontStyle) {
 
-    this.fontStyle = fontStyle;
+    fontStyle = fontStyle;
 
-    var text = new html.Element.tag("span");
-    text.style.font = this.fontStyle;
+    var text = html.HTMLSpanElement();
+    text.style.font = fontStyle;
     text.text = "Hg";
 
-    var block = new html.Element.tag("div");
+    var block = html.HTMLDivElement();
     block.style.display = "inline-block";
     block.style.width = "1px";
     block.style.height = "0px";
 
-    var div = new html.Element.tag("div");
+    var div = html.HTMLDivElement();
     div.append(block);
     div.append(text);
 
-    html.document.body.append(div);
+    html.document.body!.append(div);
 
     try {
       block.style.verticalAlign = "baseline";
-      this.ascent = block.offsetTop - text.offsetTop;
+      ascent = block.offsetTop - text.offsetTop;
 
       block.style.verticalAlign = "bottom";
-      this.height = block.offsetTop - text.offsetTop;
+      height = block.offsetTop - text.offsetTop;
 
-      this.descent = height - ascent;
+      descent = height - ascent;
 
     } catch (e) {
-
+      // ignore error
     } finally {
       div.remove();
     }
